@@ -69,6 +69,21 @@ class _NewItemState extends State<NewItem> {
                     ),
                   ],
                 ),
+                SizedBox(height: 48.0),
+                Row(
+                  children: <Widget>[
+                    Expanded(
+                      child: TextButton(onPressed: () {}, child: Text('Reset')),
+                    ),
+                    SizedBox(width: 16.0),
+                    Expanded(
+                      child: ElevatedButton(
+                        onPressed: () {},
+                        child: Text('Add Item'),
+                      ),
+                    ),
+                  ],
+                ),
               ],
             ),
           ),
