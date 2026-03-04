@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_groceries/data/categories.dart';
 
 class NewItem extends StatefulWidget {
@@ -9,6 +10,18 @@ class NewItem extends StatefulWidget {
 }
 
 class _NewItemState extends State<NewItem> {
+  final _formKey = GlobalKey<FormState>();
+
+  void _submitForm() {
+    if (_formKey.currentState!.validate()) {
+      // Process the form data
+    }
+  }
+
+  void _resetForm() {
+    _formKey.currentState!.reset();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -16,6 +29,7 @@ class _NewItemState extends State<NewItem> {
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Form(
+          key: _formKey,
           child: SingleChildScrollView(
             child: Column(
               children: [
@@ -42,6 +56,10 @@ class _NewItemState extends State<NewItem> {
                           labelText: 'Quantity',
                         ),
                         initialValue: '1',
+                        keyboardType: TextInputType.number,
+                        inputFormatters: [
+                          FilteringTextInputFormatter.digitsOnly,
+                        ],
                         validator: (value) {
                           if (value == null ||
                               value.isEmpty ||
@@ -82,12 +100,15 @@ class _NewItemState extends State<NewItem> {
                 Row(
                   children: <Widget>[
                     Expanded(
-                      child: TextButton(onPressed: () {}, child: Text('Reset')),
+                      child: TextButton(
+                        onPressed: _resetForm,
+                        child: Text('Reset'),
+                      ),
                     ),
                     SizedBox(width: 16.0),
                     Expanded(
                       child: ElevatedButton(
-                        onPressed: () {},
+                        onPressed: _submitForm,
                         child: Text('Add Item'),
                       ),
                     ),
