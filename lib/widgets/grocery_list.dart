@@ -23,6 +23,28 @@ class _GroceryListState extends State<GroceryList> {
     }
   }
 
+  void _onRemoveItem(GroceryItem item, int itemIndex) {
+    setState(() {
+      _groceryItems.remove(item);
+    });
+
+    ScaffoldMessenger.of(context).clearSnackBars();
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: const Text('Grocery deleted.'),
+        duration: const Duration(seconds: 3),
+        action: SnackBarAction(
+          label: 'Undo',
+          onPressed: () {
+            setState(() {
+              _groceryItems.insert(itemIndex, item);
+            });
+          },
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     Widget content = const Center(
@@ -32,14 +54,34 @@ class _GroceryListState extends State<GroceryList> {
     if (_groceryItems.isNotEmpty) {
       content = ListView.builder(
         itemCount: _groceryItems.length,
-        itemBuilder: (context, index) => ListTile(
-          leading: Container(
-            width: 24.0,
-            height: 24.0,
-            color: _groceryItems[index].category.color,
+        itemBuilder: (context, index) => Dismissible(
+          key: ValueKey(_groceryItems[index].id),
+          direction: DismissDirection.endToStart,
+          background: Container(
+            color: Colors.red,
+            margin: EdgeInsets.symmetric(horizontal: 0.0, vertical: 4.0),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: <Widget>[
+                Padding(
+                  padding: const EdgeInsets.only(right: 20),
+                  child: Icon(Icons.delete, color: Colors.white),
+                ),
+              ],
+            ),
           ),
-          title: Text(_groceryItems[index].name),
-          trailing: Text(_groceryItems[index].quantity.toString()),
+          onDismissed: (direction) {
+            _onRemoveItem(_groceryItems[index], index);
+          },
+          child: ListTile(
+            leading: Container(
+              width: 24.0,
+              height: 24.0,
+              color: _groceryItems[index].category.color,
+            ),
+            title: Text(_groceryItems[index].name),
+            trailing: Text(_groceryItems[index].quantity.toString()),
+          ),
         ),
       );
     }
