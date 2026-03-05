@@ -21,26 +21,34 @@ class _NewItemState extends State<NewItem> {
   var _enteredQuantity = 1;
   var _selectedCategory = categories[Categories.vegetables]!;
 
-  void _submitForm() {
+  void _submitForm() async {
     if (_formKey.currentState!.validate()) {
       _formKey.currentState!.save();
+
+      final navigator = Navigator.of(context);
 
       final url = Uri.https(
         'groceries-f1b8e-default-rtdb.firebaseio.com',
         'shopping-list.json',
       );
 
-      http.post(
-        url,
-        headers: {'Content-Type': 'application/json'},
-        body: jsonEncode({
-          'name': _enteredName,
-          'quantity': _enteredQuantity,
-          'category': _selectedCategory.title,
-        }),
-      );
+      try {
+        final response = await http.post(
+          url,
+          headers: {'Content-Type': 'application/json'},
+          body: jsonEncode({
+            'name': _enteredName,
+            'quantity': _enteredQuantity,
+            'category': _selectedCategory.title,
+          }),
+        );
 
-      Navigator.of(context).pop();
+        final responseData = jsonDecode(response.body);
+
+        navigator.pop();
+      } catch (error) {
+        print('Error occurred while sending data: $error');
+      }
     }
   }
 
