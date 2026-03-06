@@ -45,7 +45,14 @@ class _NewItemState extends State<NewItem> {
 
         final responseData = jsonDecode(response.body);
 
-        navigator.pop();
+        navigator.pop(
+          GroceryItem(
+            id: responseData['name'],
+            name: _enteredName,
+            quantity: _enteredQuantity,
+            category: _selectedCategory,
+          ),
+        );
       } catch (error) {
         print('Error occurred while sending data: $error');
       }

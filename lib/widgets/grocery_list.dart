@@ -49,26 +49,33 @@ class _GroceryListState extends State<GroceryList> {
           final itemId = entry.key;
           final itemData = entry.value;
 
-          final category = categories.entries
-              .firstWhere(
-                (catEntry) => catEntry.value.title == itemData['category'],
-              )
-              .value;
+          if (itemData is Map<String, dynamic>) {
+            try {
+              final category = categories.entries
+                  .firstWhere(
+                    (catEntry) => catEntry.value.title == itemData['category'],
+                  )
+                  .value;
 
-          loadedItems.add(
-            GroceryItem(
-              id: itemId,
-              name: itemData['name'],
-              quantity: itemData['quantity'],
-              category: category,
-            ),
-          );
+              loadedItems.add(
+                GroceryItem(
+                  id: itemId,
+                  name: itemData['name'],
+                  quantity: itemData['quantity'],
+                  category: category,
+                ),
+              );
+            } catch (e) {
+              // Category not found, skip this item
+              print('Category ${itemData['category']} not found');
+            }
+          }
         }
       }
 
       setState(() {
         _groceryItems.clear();
-        _groceryItems = loadedItems;
+        _groceryItems.addAll(loadedItems);
       });
     } catch (error) {
       print('Error occurred while fetching data: $error');
@@ -76,19 +83,14 @@ class _GroceryListState extends State<GroceryList> {
   }
 
   void _addItem() async {
-    await Navigator.of(
+    final newItem = await Navigator.of(
       context,
-    ).push(MaterialPageRoute(builder: (ctx) => const NewItem()));
+    ).push<GroceryItem>(MaterialPageRoute(builder: (ctx) => const NewItem()));
 
-    final url = Uri.https(
-      'groceries-f1b8e-default-rtdb.firebaseio.com',
-      'shopping-list.json',
-    );
-
-    try {
-      _loadItems();
-    } catch (error) {
-      print('Error occurred while sending data: $error');
+    if (newItem != null) {
+      setState(() {
+        _groceryItems.add(newItem);
+      });
     }
   }
 
