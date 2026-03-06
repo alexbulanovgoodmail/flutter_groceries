@@ -15,7 +15,8 @@ class GroceryList extends StatefulWidget {
 }
 
 class _GroceryListState extends State<GroceryList> {
-  List<GroceryItem> _groceryItems = [];
+  final List<GroceryItem> _groceryItems = [];
+  bool _isLoading = false;
 
   void _loadItems() async {
     final url = Uri.https(
@@ -24,6 +25,10 @@ class _GroceryListState extends State<GroceryList> {
     );
 
     try {
+      setState(() {
+        _isLoading = true;
+      });
+
       final response = await http.get(url);
 
       if (response.body.isEmpty || response.body == 'null') {
@@ -79,6 +84,10 @@ class _GroceryListState extends State<GroceryList> {
       });
     } catch (error) {
       print('Error occurred while fetching data: $error');
+    } finally {
+      setState(() {
+        _isLoading = false;
+      });
     }
   }
 
@@ -127,6 +136,10 @@ class _GroceryListState extends State<GroceryList> {
     Widget content = const Center(
       child: Text('No items added yet.', style: TextStyle(fontSize: 18.0)),
     );
+
+    if (_isLoading) {
+      content = const Center(child: CircularProgressIndicator());
+    }
 
     if (_groceryItems.isNotEmpty) {
       content = ListView.builder(

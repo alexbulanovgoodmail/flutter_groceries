@@ -20,6 +20,7 @@ class _NewItemState extends State<NewItem> {
   var _enteredName = '';
   var _enteredQuantity = 1;
   var _selectedCategory = categories[Categories.vegetables]!;
+  bool _isLoading = false;
 
   void _submitForm() async {
     if (_formKey.currentState!.validate()) {
@@ -33,6 +34,10 @@ class _NewItemState extends State<NewItem> {
       );
 
       try {
+        setState(() {
+          _isLoading = true;
+        });
+
         final response = await http.post(
           url,
           headers: {'Content-Type': 'application/json'},
@@ -55,6 +60,10 @@ class _NewItemState extends State<NewItem> {
         );
       } catch (error) {
         print('Error occurred while sending data: $error');
+      } finally {
+        setState(() {
+          _isLoading = false;
+        });
       }
     }
   }
@@ -153,15 +162,23 @@ class _NewItemState extends State<NewItem> {
                   children: <Widget>[
                     Expanded(
                       child: TextButton(
-                        onPressed: _resetForm,
+                        onPressed: _isLoading ? null : _resetForm,
                         child: Text('Reset'),
                       ),
                     ),
                     SizedBox(width: 16.0),
                     Expanded(
                       child: ElevatedButton(
-                        onPressed: _submitForm,
-                        child: Text('Add Item'),
+                        onPressed: _isLoading ? null : _submitForm,
+                        child: _isLoading
+                            ? const SizedBox(
+                                width: 16.0,
+                                height: 16.0,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2.0,
+                                ),
+                              )
+                            : const Text('Add Item'),
                       ),
                     ),
                   ],
