@@ -17,6 +17,7 @@ class GroceryList extends StatefulWidget {
 class _GroceryListState extends State<GroceryList> {
   final List<GroceryItem> _groceryItems = [];
   bool _isLoading = false;
+  String? _error;
 
   void _loadItems() async {
     final url = Uri.https(
@@ -27,9 +28,14 @@ class _GroceryListState extends State<GroceryList> {
     try {
       setState(() {
         _isLoading = true;
+        _error = null;
       });
 
       final response = await http.get(url);
+
+      if (response.statusCode != 200) {
+        throw Exception('Failed to load items');
+      }
 
       if (response.body.isEmpty || response.body == 'null') {
         setState(() {
@@ -83,7 +89,9 @@ class _GroceryListState extends State<GroceryList> {
         _groceryItems.addAll(loadedItems);
       });
     } catch (error) {
-      print('Error occurred while fetching data: $error');
+      setState(() {
+        _error = 'Error occurred while fetching data.';
+      });
     } finally {
       setState(() {
         _isLoading = false;
@@ -172,6 +180,15 @@ class _GroceryListState extends State<GroceryList> {
             title: Text(_groceryItems[index].name),
             trailing: Text(_groceryItems[index].quantity.toString()),
           ),
+        ),
+      );
+    }
+
+    if (_error != null) {
+      content = Center(
+        child: Text(
+          _error!,
+          style: const TextStyle(fontSize: 18.0, color: Colors.red),
         ),
       );
     }
