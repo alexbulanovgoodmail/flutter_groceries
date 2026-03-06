@@ -1,4 +1,9 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
+import 'package:flutter_groceries/data/categories.dart';
+import 'package:http/http.dart' as http;
+
 import 'package:flutter_groceries/models/grocery_item.dart';
 import 'package:flutter_groceries/widgets/new_item.dart';
 
@@ -10,12 +15,81 @@ class GroceryList extends StatefulWidget {
 }
 
 class _GroceryListState extends State<GroceryList> {
-  final List<GroceryItem> _groceryItems = [];
+  List<GroceryItem> _groceryItems = [];
 
-  void _addItem() {
-    Navigator.of(
+  void _loadItems() async {
+    final url = Uri.https(
+      'groceries-f1b8e-default-rtdb.firebaseio.com',
+      'shopping-list.json',
+    );
+
+    try {
+      final response = await http.get(url);
+
+      if (response.body.isEmpty || response.body == 'null') {
+        setState(() {
+          _groceryItems.clear();
+        });
+        return;
+      }
+
+      final responseData = jsonDecode(response.body);
+
+      if (responseData == null) {
+        setState(() {
+          _groceryItems.clear();
+        });
+        return;
+      }
+
+      final List<GroceryItem> loadedItems = [];
+
+      if (responseData is Map<String, dynamic>) {
+        for (final entry in responseData.entries) {
+          final itemId = entry.key;
+          final itemData = entry.value;
+
+          final category = categories.entries
+              .firstWhere(
+                (catEntry) => catEntry.value.title == itemData['category'],
+              )
+              .value;
+
+          loadedItems.add(
+            GroceryItem(
+              id: itemId,
+              name: itemData['name'],
+              quantity: itemData['quantity'],
+              category: category,
+            ),
+          );
+        }
+      }
+
+      setState(() {
+        _groceryItems.clear();
+        _groceryItems = loadedItems;
+      });
+    } catch (error) {
+      print('Error occurred while fetching data: $error');
+    }
+  }
+
+  void _addItem() async {
+    await Navigator.of(
       context,
     ).push(MaterialPageRoute(builder: (ctx) => const NewItem()));
+
+    final url = Uri.https(
+      'groceries-f1b8e-default-rtdb.firebaseio.com',
+      'shopping-list.json',
+    );
+
+    try {
+      _loadItems();
+    } catch (error) {
+      print('Error occurred while sending data: $error');
+    }
   }
 
   void _onRemoveItem(GroceryItem item, int itemIndex) {
@@ -38,6 +112,12 @@ class _GroceryListState extends State<GroceryList> {
         ),
       ),
     );
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _loadItems();
   }
 
   @override
