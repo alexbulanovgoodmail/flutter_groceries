@@ -77,8 +77,7 @@ class _GroceryListState extends State<GroceryList> {
                 ),
               );
             } catch (e) {
-              // Category not found, skip this item
-              print('Category ${itemData['category']} not found');
+              throw Exception('Category ${itemData['category']} not found');
             }
           }
         }
@@ -104,6 +103,7 @@ class _GroceryListState extends State<GroceryList> {
       context,
     ).push<GroceryItem>(MaterialPageRoute(builder: (ctx) => const NewItem()));
 
+    if (!mounted) return;
     if (newItem != null) {
       setState(() {
         _groceryItems.add(newItem);
@@ -111,26 +111,44 @@ class _GroceryListState extends State<GroceryList> {
     }
   }
 
-  void _onRemoveItem(GroceryItem item, int itemIndex) {
+  void _removeItem(GroceryItem item, int itemIndex) async {
     setState(() {
       _groceryItems.remove(item);
     });
 
-    ScaffoldMessenger.of(context).clearSnackBars();
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: const Text('Grocery deleted.'),
-        duration: const Duration(seconds: 3),
-        action: SnackBarAction(
-          label: 'Undo',
-          onPressed: () {
-            setState(() {
-              _groceryItems.insert(itemIndex, item);
-            });
-          },
-        ),
-      ),
+    final url = Uri.https(
+      '2groceries-f1b8e-default-rtdb.firebaseio.com',
+      'shopping-list/${item.id}.json',
     );
+
+    try {
+      final response = await http.delete(url);
+
+      if (response.statusCode != 200) {
+        throw Exception('Failed to delete item');
+      }
+    } catch (error) {
+      if (!mounted) return;
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: const Text(
+            'Failed to delete item. Please try again.',
+            style: TextStyle(color: Colors.white, fontSize: 16),
+          ),
+          backgroundColor: Colors.red[600],
+          duration: const Duration(seconds: 4),
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+          margin: const EdgeInsets.all(16),
+          elevation: 6,
+        ),
+      );
+
+      setState(() {
+        _groceryItems.insert(itemIndex, item);
+      });
+    }
   }
 
   @override
@@ -169,7 +187,7 @@ class _GroceryListState extends State<GroceryList> {
             ),
           ),
           onDismissed: (direction) {
-            _onRemoveItem(_groceryItems[index], index);
+            _removeItem(_groceryItems[index], index);
           },
           child: ListTile(
             leading: Container(
