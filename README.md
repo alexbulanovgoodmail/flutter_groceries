@@ -1,3 +1,3 @@
 # flutter_groceries
 
-A new Flutter project.
+![Превью](https://github.com/alexbulanovgoodmail/flutter_groceries/blob/main/preview.webp?raw=true)
