@@ -59,7 +59,24 @@ class _NewItemState extends State<NewItem> {
           ),
         );
       } catch (error) {
-        print('Error occurred while sending data: $error');
+        if (!mounted) return;
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: const Text(
+              'Failed to add item. Please try again.',
+              style: TextStyle(color: Colors.white, fontSize: 16),
+            ),
+            backgroundColor: Colors.red[600],
+            duration: const Duration(seconds: 4),
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(8),
+            ),
+            margin: const EdgeInsets.all(16),
+            elevation: 6,
+          ),
+        );
       } finally {
         setState(() {
           _isLoading = false;

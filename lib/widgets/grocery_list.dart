@@ -33,10 +33,6 @@ class _GroceryListState extends State<GroceryList> {
 
       final response = await http.get(url);
 
-      if (response.statusCode != 200) {
-        throw Exception('Failed to load items');
-      }
-
       if (response.body.isEmpty || response.body == 'null') {
         setState(() {
           _groceryItems.clear();
@@ -117,16 +113,12 @@ class _GroceryListState extends State<GroceryList> {
     });
 
     final url = Uri.https(
-      '2groceries-f1b8e-default-rtdb.firebaseio.com',
+      'groceries-f1b8e-default-rtdb.firebaseio.com',
       'shopping-list/${item.id}.json',
     );
 
     try {
-      final response = await http.delete(url);
-
-      if (response.statusCode != 200) {
-        throw Exception('Failed to delete item');
-      }
+      await http.delete(url);
     } catch (error) {
       if (!mounted) return;
 
